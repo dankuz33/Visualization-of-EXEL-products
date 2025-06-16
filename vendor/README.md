@@ -1,0 +1,1 @@
+This directory should contain the PhpSpreadsheet library. If you cannot use Composer, download the release archive from https://github.com/PHPOffice/PhpSpreadsheet/releases and extract it here so that `autoload.php` is available.

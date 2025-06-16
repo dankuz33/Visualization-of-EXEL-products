@@ -1,0 +1,5 @@
+/vendor/*
+!vendor/README.md
+!vendor/.gitkeep
+/uploads/*
+!uploads/.gitkeep
