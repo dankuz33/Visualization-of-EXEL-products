@@ -1,5 +1,13 @@
 <?php
+
+$autoload = __DIR__ . '/vendor/autoload.php';
+if (!file_exists($autoload)) {
+    die('PhpSpreadsheet not found. Download it from https://github.com/PHPOffice/PhpSpreadsheet/releases and extract so that vendor/autoload.php exists.');
+}
+require_once $autoload;
+
 require_once __DIR__ . '/vendor/autoload.php';
+
 use PhpOffice\PhpSpreadsheet\IOFactory;
 
 session_start();
@@ -9,7 +17,21 @@ $products = [];
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['excel_file'])) {
     $tmpName = $_FILES['excel_file']['tmp_name'] ?? '';
     if ($tmpName && is_uploaded_file($tmpName)) {
+
+        $mime = '';
+        if (function_exists('finfo_open')) {
+            $fi = finfo_open(FILEINFO_MIME_TYPE);
+            if ($fi) {
+                $mime = finfo_file($fi, $tmpName);
+                finfo_close($fi);
+            }
+        }
+        if (!$mime && function_exists('mime_content_type')) {
+            $mime = mime_content_type($tmpName);
+        }
+
         $mime = mime_content_type($tmpName);
+
         $allowed = [
             'application/vnd.ms-excel',
             'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
@@ -22,7 +44,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['excel_file'])) {
             if (!is_dir($uploadDir)) {
                 mkdir($uploadDir, 0777, true);
             }
+
+            $ext = strtolower(pathinfo($_FILES['excel_file']['name'] ?? '', PATHINFO_EXTENSION));
+            $dest = $uploadDir . '/' . uniqid('excel_', true) . ($ext ? '.' . $ext : '');
+
             $dest = $uploadDir . '/' . uniqid('excel_', true) . '.xlsx';
+
             if (move_uploaded_file($tmpName, $dest)) {
                 try {
                     $spreadsheet = IOFactory::load($dest);
